@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nick Leonard</title>
+<meta name="description" content="Nick Leonard: technical engineering leader &amp; fractional CTO. 18+ years architecting and scaling ML, data, and AI platforms.">
+<meta property="og:title" content="Nick Leonard">
+<meta property="og:description" content="Technical engineering leader &amp; fractional CTO.">
+<meta property="og:image" content="https://nickleonard.tech/avatar.jpg">
+<meta property="og:url" content="https://nickleonard.tech/">
+<link rel="icon" href="/avatar.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0a1f;
+    --panel: #12102e;
+    --line: #2a2560;
+    --text: #d9d4ff;
+    --dim: #6f68a8;
+    --violet: #9d7bff;
+    --rose: #f08ca6;
+    --copper: #e0a36a;
+    --green: #7ee0b5;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    display: grid; place-items: center;
+    height: 100dvh;
+    padding: 24px;
+    font-size: 15px;
+  }
+  .window {
+    width: min(1040px, 100%);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 30px 80px #000a, 0 0 120px #6d3df522;
+    overflow: hidden;
+  }
+  .bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .bar i { width: 12px; height: 12px; border-radius: 50%; background: var(--line); }
+  .bar i:nth-child(1) { background: var(--rose); }
+  .bar i:nth-child(2) { background: var(--copper); }
+  .bar i:nth-child(3) { background: var(--violet); }
+  .bar span { margin-left: 12px; color: var(--dim); font-size: 13px; }
+  .body { display: grid; grid-template-columns: 300px 1fr; gap: 40px; padding: 40px; align-items: center; }
+  .photo { position: relative; }
+  .photo img { width: 100%; aspect-ratio: 1; display: block; border-radius: 8px; image-rendering: auto; }
+  /* scanlines */
+  .photo::after { content: ""; position: absolute; inset: 0; border-radius: 8px; background: repeating-linear-gradient(transparent 0 2px, #0b0a1f33 2px 3px); pointer-events: none; }
+  .line { line-height: 1.9; }
+  .prompt { color: var(--green); }
+  .prompt b { color: var(--violet); font-weight: 400; }
+  .out { color: var(--text); padding-left: 2ch; margin-bottom: 10px; line-height: 1.7; }
+  .out .k { color: var(--copper); }
+  .out a { color: var(--rose); text-decoration: none; }
+  .out a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .body > div { min-width: 0; }
+  h1 { margin: 6px 0 8px; container-type: inline-size; }
+  .banner.stack { display: none; }
+  .banner {
+    font-family: inherit;
+    font-size: min(9.5px, 100cqi / 66);
+    line-height: 1;
+    background: linear-gradient(90deg, #ece6ff, var(--rose));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .banner .s { color: var(--violet); }
+  @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+  .cursor { display: inline-block; width: 9px; height: 18px; background: var(--violet); vertical-align: -3px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (max-width: 1100px) { br.d { display: none; } }
+  @media (max-width: 760px) {
+    body { overflow: auto; display: block; padding: 16px; font-size: 13px; height: auto; }
+    .body { grid-template-columns: 1fr; padding: 20px; gap: 20px; }
+    .photo { width: 160px; }
+    .banner.wide { display: none; }
+    .banner.stack { display: block; font-size: min(12px, 100cqi / 45); }
+  }
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="bar"><i></i><i></i><i></i><span>nick@nickleonard.tech: ~</span></div>
+  <div class="body">
+    <div class="photo"><img src="/avatar.jpg" alt="Illustrated portrait of Nick Leonard"></div>
+    <div>
+      <div class="line prompt"><b>~</b> $ whoami</div>
+      <div class="out"><h1 aria-label="Nick Leonard"><pre class="banner wide" aria-hidden="true"><span class="s">▒</span>██     <span class="s">▒</span>██ <span class="s">▒</span>██           <span class="s">▒</span>██         <span class="s">▒</span>██                                                                 <span class="s">▒</span>██
+<span class="s">▒</span>████   <span class="s">▒</span>██               <span class="s">▒</span>██         <span class="s">▒</span>██                                                                 <span class="s">▒</span>██
+<span class="s">▒</span>████   <span class="s">▒</span>██ <span class="s">▒</span>██ <span class="s">▒</span>████████ <span class="s">▒</span>██   <span class="s">▒</span>██   <span class="s">▒</span>██         <span class="s">▒</span>████████ <span class="s">▒</span>████████ <span class="s">▒</span>████████ <span class="s">▒</span>████████ <span class="s">▒</span>████████ <span class="s">▒</span>████████
+<span class="s">▒</span>██ <span class="s">▒</span>██ <span class="s">▒</span>██ <span class="s">▒</span>██ <span class="s">▒</span>██       <span class="s">▒</span>██ <span class="s">▒</span>██     <span class="s">▒</span>██         <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██   <span class="s">▒</span>██       <span class="s">▒</span>██ <span class="s">▒</span>██       <span class="s">▒</span>██   <span class="s">▒</span>██
+<span class="s">▒</span>██   <span class="s">▒</span>████ <span class="s">▒</span>██ <span class="s">▒</span>██       <span class="s">▒</span>████       <span class="s">▒</span>██         <span class="s">▒</span>████████ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>████████ <span class="s">▒</span>██       <span class="s">▒</span>██   <span class="s">▒</span>██
+<span class="s">▒</span>██   <span class="s">▒</span>████ <span class="s">▒</span>██ <span class="s">▒</span>██       <span class="s">▒</span>██ <span class="s">▒</span>██     <span class="s">▒</span>██         <span class="s">▒</span>██       <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██       <span class="s">▒</span>██   <span class="s">▒</span>██
+<span class="s">▒</span>██     <span class="s">▒</span>██ <span class="s">▒</span>██ <span class="s">▒</span>████████ <span class="s">▒</span>██   <span class="s">▒</span>██   <span class="s">▒</span>██████████ <span class="s">▒</span>████████ <span class="s">▒</span>████████ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>████████ <span class="s">▒</span>██       <span class="s">▒</span>████████</pre><pre class="banner stack" aria-hidden="true"><span class="s">▒</span>██     <span class="s">▒</span>██ <span class="s">▒</span>██           <span class="s">▒</span>██
+<span class="s">▒</span>████   <span class="s">▒</span>██               <span class="s">▒</span>██
+<span class="s">▒</span>████   <span class="s">▒</span>██ <span class="s">▒</span>██ <span class="s">▒</span>████████ <span class="s">▒</span>██   <span class="s">▒</span>██
+<span class="s">▒</span>██ <span class="s">▒</span>██ <span class="s">▒</span>██ <span class="s">▒</span>██ <span class="s">▒</span>██       <span class="s">▒</span>██ <span class="s">▒</span>██
+<span class="s">▒</span>██   <span class="s">▒</span>████ <span class="s">▒</span>██ <span class="s">▒</span>██       <span class="s">▒</span>████
+<span class="s">▒</span>██   <span class="s">▒</span>████ <span class="s">▒</span>██ <span class="s">▒</span>██       <span class="s">▒</span>██ <span class="s">▒</span>██
+<span class="s">▒</span>██     <span class="s">▒</span>██ <span class="s">▒</span>██ <span class="s">▒</span>████████ <span class="s">▒</span>██   <span class="s">▒</span>██
+
+<span class="s">▒</span>██                                                                 <span class="s">▒</span>██
+<span class="s">▒</span>██                                                                 <span class="s">▒</span>██
+<span class="s">▒</span>██         <span class="s">▒</span>████████ <span class="s">▒</span>████████ <span class="s">▒</span>████████ <span class="s">▒</span>████████ <span class="s">▒</span>████████ <span class="s">▒</span>████████
+<span class="s">▒</span>██         <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██   <span class="s">▒</span>██       <span class="s">▒</span>██ <span class="s">▒</span>██       <span class="s">▒</span>██   <span class="s">▒</span>██
+<span class="s">▒</span>██         <span class="s">▒</span>████████ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>████████ <span class="s">▒</span>██       <span class="s">▒</span>██   <span class="s">▒</span>██
+<span class="s">▒</span>██         <span class="s">▒</span>██       <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>██       <span class="s">▒</span>██   <span class="s">▒</span>██
+<span class="s">▒</span>██████████ <span class="s">▒</span>████████ <span class="s">▒</span>████████ <span class="s">▒</span>██   <span class="s">▒</span>██ <span class="s">▒</span>████████ <span class="s">▒</span>██       <span class="s">▒</span>████████</pre></h1></div>
+      <div class="line prompt"><b>~</b> $ cat about.txt</div>
+      <div class="out">Technical engineering leader &amp; fractional CTO.<br class="d"> 18+ years architecting and scaling ML, data,<br class="d"> and AI platforms.</div>
+      <div class="line prompt"><b>~</b> $ ls links/</div>
+      <div class="out">
+        <span class="k">business</span>  → <a href="https://rockhousetech.com">rockhousetech.com</a><br>
+        <span class="k">linkedin</span>  → <a href="https://www.linkedin.com/in/leonardnick">linkedin.com/in/leonardnick</a><br>
+        <span class="k">github</span>    → <a href="https://github.com/nick-leonard">github.com/nick-leonard</a>
+      </div>
+      <div class="line prompt"><b>~</b> $ <span class="cursor"></span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

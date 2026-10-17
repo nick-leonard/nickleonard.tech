@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nickleonard-tech",
+  "compatibility_date": "2026-10-01",
+  // Static-only Worker: everything in ./public is served as-is.
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "nickleonard.tech", "custom_domain": true },
+    { "pattern": "www.nickleonard.tech", "custom_domain": true }
+  ]
+}

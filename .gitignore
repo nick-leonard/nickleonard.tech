@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+.dev.vars
+.DS_Store
+
+# Design explorations and source images (not deployed)
+options/
+discord_avatar.png
+go_daddy_v0.png
