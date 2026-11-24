@@ -23,7 +23,7 @@ Pushes to `main` on GitHub (nick-leonard/nickleonard.tech) also deploy automatic
 
 `public/index.html` is a single self-contained page styled as a terminal window (JetBrains Mono from Google Fonts, colors as CSS variables taken from the avatar: deep indigo, violet, rose, copper). It must fit one desktop screen without scrolling; below 760px it stacks into one column.
 
-The large "Nick Leonard" heading is ASCII art made of `█` (fill) and `▒` (left-edge shadow, wrapped in `<span class="s">`) inside `<pre class="banner">`. It comes from a small hand-drawn 7-row pixel font, not a figlet font. There are two copies: `.banner.wide` (one line, desktop) and `.banner.stack` (two lines, mobile). Font size uses container query units (`cqi`) on the `h1`, so it scales to its column. If the text changes, regenerate both copies rather than hand-editing the characters.
+The large "Nick Leonard" heading is pixel art from a small hand-drawn 7-row pixel font (`█` = fill, `▒` = violet left-edge shadow), rendered as two inline SVGs inside the `h1`: `.banner.wide` (one line, desktop) and `.banner.stack` (Nick over Leonard, below 760px). The source art lives in `tools/banner_svg.py`; edit `ART` there and run `python3 tools/banner_svg.py` to rewrite both SVGs, rather than hand-editing the paths. It used to be text in a `<pre>`, but Google Fonts' JetBrains Mono subsets have no block characters, so phones drew `█`/`▒` in a fallback font of a different width and the letters smeared; SVG renders the same everywhere.
 
 Favicons (`favicon.svg`, `favicon.ico`, `apple-touch-icon.png`) are the pixel "N" from the same font. The `.ico` and `.png` were rendered from the SVG; regenerate them if the SVG changes.
 
