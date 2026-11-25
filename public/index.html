@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#0b0a1f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0b0a1f;
@@ -67,11 +67,22 @@
   .out a { color: var(--rose); text-decoration: none; }
   .out a:hover { text-decoration: underline; text-underline-offset: 3px; }
   .body > div { min-width: 0; }
-  h1 { margin: 6px 0 8px; container-type: inline-size; }
-  /* Pixel-art name as inline SVG (see tools/banner_svg.py); widths match the old 0.6em-per-cell text banner */
-  .banner { display: block; height: auto; }
-  .banner.wide { width: min(621px, 100%); }
-  .banner.stack { display: none; width: min(511px, 100%); }
+  h1, .h1 {
+    margin: 4px 0 8px;
+    width: fit-content;
+    max-width: 100%;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: clamp(32px, 4.6vw, 50px);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    background: linear-gradient(90deg, #f3efff 0%, #c9b8ff 50%, var(--rose) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 24px rgba(157, 123, 255, 0.28));
+    cursor: pointer;
+  }
   .cursor { display: inline-block; min-width: 1ch; height: 1.2em; line-height: 1.2em; vertical-align: -0.2em; background: var(--violet); color: var(--panel); white-space: pre; animation: blink 1s steps(1) infinite; }
   @keyframes blink { 50% { background: transparent; color: inherit; } }
   .cursor:not(:empty) { vertical-align: baseline; }
@@ -107,7 +118,6 @@
   .neo .t { color: var(--green); }
   .sw { display: flex; margin-top: 8px; }
   .sw i { width: 3ch; height: 1.2em; }
-  .h1 { margin: 6px 0 8px; }
   canvas.snake { display: block; margin: 8px 0 4px; border: 1px solid var(--line); border-radius: 6px; touch-action: none; }
   .board { display: grid; grid-template-columns: repeat(3, max-content); column-gap: 3ch; }
   .board .me { color: var(--green); }
@@ -122,8 +132,6 @@
     body { overflow: auto; display: block; padding: 16px; font-size: 13px; height: auto; }
     .body { grid-template-columns: 1fr; padding: 20px; gap: 20px; }
     .photo { width: 160px; }
-    .banner.wide { display: none; }
-    .banner.stack { display: block; }
     .window.term { height: auto; min-height: calc(100dvh - 32px); }
     .window.term .body { overflow: visible; padding: 20px; }
     .neo { flex-direction: column; gap: 12px; }
@@ -139,7 +147,7 @@
     <div class="photo"><img src="/avatar.jpg" alt="Illustrated portrait of Nick Leonard"></div>
     <div>
       <div class="line prompt"><b>~</b> $ whoami</div>
-      <div class="out"><h1 aria-label="Nick Leonard"><svg class="banner wide" viewBox="0 0 654 70" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><defs><linearGradient id="bg-wide" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="654" y2="0"><stop offset="0" stop-color="#ece6ff"/><stop offset="1" style="stop-color:var(--rose)"/></linearGradient><pattern id="bs-wide" patternUnits="userSpaceOnUse" width="2" height="2"><rect width="1" height="1" style="fill:var(--violet)"/><rect x="1" y="1" width="1" height="1" style="fill:var(--violet)"/></pattern></defs><path fill="url(#bs-wide)" d="M0 0h6v10h-6zM48 0h6v10h-6zM72 0h6v10h-6zM156 0h6v10h-6zM228 0h6v10h-6zM636 0h6v10h-6zM0 10h6v10h-6zM48 10h6v10h-6zM156 10h6v10h-6zM228 10h6v10h-6zM636 10h6v10h-6zM0 20h6v10h-6zM48 20h6v10h-6zM72 20h6v10h-6zM96 20h6v10h-6zM156 20h6v10h-6zM192 20h6v10h-6zM228 20h6v10h-6zM300 20h6v10h-6zM360 20h6v10h-6zM420 20h6v10h-6zM480 20h6v10h-6zM540 20h6v10h-6zM600 20h6v10h-6zM0 30h6v10h-6zM24 30h6v10h-6zM48 30h6v10h-6zM72 30h6v10h-6zM96 30h6v10h-6zM156 30h6v10h-6zM180 30h6v10h-6zM228 30h6v10h-6zM300 30h6v10h-6zM336 30h6v10h-6zM360 30h6v10h-6zM396 30h6v10h-6zM420 30h6v10h-6zM456 30h6v10h-6zM516 30h6v10h-6zM540 30h6v10h-6zM600 30h6v10h-6zM636 30h6v10h-6zM0 40h6v10h-6zM36 40h6v10h-6zM72 40h6v10h-6zM96 40h6v10h-6zM156 40h6v10h-6zM228 40h6v10h-6zM300 40h6v10h-6zM360 40h6v10h-6zM396 40h6v10h-6zM420 40h6v10h-6zM456 40h6v10h-6zM480 40h6v10h-6zM540 40h6v10h-6zM600 40h6v10h-6zM636 40h6v10h-6zM0 50h6v10h-6zM36 50h6v10h-6zM72 50h6v10h-6zM96 50h6v10h-6zM156 50h6v10h-6zM180 50h6v10h-6zM228 50h6v10h-6zM300 50h6v10h-6zM360 50h6v10h-6zM396 50h6v10h-6zM420 50h6v10h-6zM456 50h6v10h-6zM480 50h6v10h-6zM516 50h6v10h-6zM540 50h6v10h-6zM600 50h6v10h-6zM636 50h6v10h-6zM0 60h6v10h-6zM48 60h6v10h-6zM72 60h6v10h-6zM96 60h6v10h-6zM156 60h6v10h-6zM192 60h6v10h-6zM228 60h6v10h-6zM300 60h6v10h-6zM360 60h6v10h-6zM420 60h6v10h-6zM456 60h6v10h-6zM480 60h6v10h-6zM540 60h6v10h-6zM600 60h6v10h-6z"/><path fill="url(#bg-wide)" d="M6 0h12v10h-12zM54 0h12v10h-12zM78 0h12v10h-12zM162 0h12v10h-12zM234 0h12v10h-12zM642 0h12v10h-12zM6 10h24v10h-24zM54 10h12v10h-12zM162 10h12v10h-12zM234 10h12v10h-12zM642 10h12v10h-12zM6 20h24v10h-24zM54 20h12v10h-12zM78 20h12v10h-12zM102 20h48v10h-48zM162 20h12v10h-12zM198 20h12v10h-12zM234 20h12v10h-12zM306 20h48v10h-48zM366 20h48v10h-48zM426 20h48v10h-48zM486 20h48v10h-48zM546 20h48v10h-48zM606 20h48v10h-48zM6 30h12v10h-12zM30 30h12v10h-12zM54 30h12v10h-12zM78 30h12v10h-12zM102 30h12v10h-12zM162 30h12v10h-12zM186 30h12v10h-12zM234 30h12v10h-12zM306 30h12v10h-12zM342 30h12v10h-12zM366 30h12v10h-12zM402 30h12v10h-12zM426 30h12v10h-12zM462 30h12v10h-12zM522 30h12v10h-12zM546 30h12v10h-12zM606 30h12v10h-12zM642 30h12v10h-12zM6 40h12v10h-12zM42 40h24v10h-24zM78 40h12v10h-12zM102 40h12v10h-12zM162 40h24v10h-24zM234 40h12v10h-12zM306 40h48v10h-48zM366 40h12v10h-12zM402 40h12v10h-12zM426 40h12v10h-12zM462 40h12v10h-12zM486 40h48v10h-48zM546 40h12v10h-12zM606 40h12v10h-12zM642 40h12v10h-12zM6 50h12v10h-12zM42 50h24v10h-24zM78 50h12v10h-12zM102 50h12v10h-12zM162 50h12v10h-12zM186 50h12v10h-12zM234 50h12v10h-12zM306 50h12v10h-12zM366 50h12v10h-12zM402 50h12v10h-12zM426 50h12v10h-12zM462 50h12v10h-12zM486 50h12v10h-12zM522 50h12v10h-12zM546 50h12v10h-12zM606 50h12v10h-12zM642 50h12v10h-12zM6 60h12v10h-12zM54 60h12v10h-12zM78 60h12v10h-12zM102 60h48v10h-48zM162 60h12v10h-12zM198 60h12v10h-12zM234 60h60v10h-60zM306 60h48v10h-48zM366 60h48v10h-48zM426 60h12v10h-12zM462 60h12v10h-12zM486 60h48v10h-48zM546 60h12v10h-12zM606 60h48v10h-48z"/></svg><svg class="banner stack" viewBox="0 0 426 150" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><defs><linearGradient id="bg-stack" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="426" y2="0"><stop offset="0" stop-color="#ece6ff"/><stop offset="1" style="stop-color:var(--rose)"/></linearGradient><pattern id="bs-stack" patternUnits="userSpaceOnUse" width="2" height="2"><rect width="1" height="1" style="fill:var(--violet)"/><rect x="1" y="1" width="1" height="1" style="fill:var(--violet)"/></pattern></defs><path fill="url(#bs-stack)" d="M0 0h6v10h-6zM48 0h6v10h-6zM72 0h6v10h-6zM156 0h6v10h-6zM0 10h6v10h-6zM48 10h6v10h-6zM156 10h6v10h-6zM0 20h6v10h-6zM48 20h6v10h-6zM72 20h6v10h-6zM96 20h6v10h-6zM156 20h6v10h-6zM192 20h6v10h-6zM0 30h6v10h-6zM24 30h6v10h-6zM48 30h6v10h-6zM72 30h6v10h-6zM96 30h6v10h-6zM156 30h6v10h-6zM180 30h6v10h-6zM0 40h6v10h-6zM36 40h6v10h-6zM72 40h6v10h-6zM96 40h6v10h-6zM156 40h6v10h-6zM0 50h6v10h-6zM36 50h6v10h-6zM72 50h6v10h-6zM96 50h6v10h-6zM156 50h6v10h-6zM180 50h6v10h-6zM0 60h6v10h-6zM48 60h6v10h-6zM72 60h6v10h-6zM96 60h6v10h-6zM156 60h6v10h-6zM192 60h6v10h-6zM0 80h6v10h-6zM408 80h6v10h-6zM0 90h6v10h-6zM408 90h6v10h-6zM0 100h6v10h-6zM72 100h6v10h-6zM132 100h6v10h-6zM192 100h6v10h-6zM252 100h6v10h-6zM312 100h6v10h-6zM372 100h6v10h-6zM0 110h6v10h-6zM72 110h6v10h-6zM108 110h6v10h-6zM132 110h6v10h-6zM168 110h6v10h-6zM192 110h6v10h-6zM228 110h6v10h-6zM288 110h6v10h-6zM312 110h6v10h-6zM372 110h6v10h-6zM408 110h6v10h-6zM0 120h6v10h-6zM72 120h6v10h-6zM132 120h6v10h-6zM168 120h6v10h-6zM192 120h6v10h-6zM228 120h6v10h-6zM252 120h6v10h-6zM312 120h6v10h-6zM372 120h6v10h-6zM408 120h6v10h-6zM0 130h6v10h-6zM72 130h6v10h-6zM132 130h6v10h-6zM168 130h6v10h-6zM192 130h6v10h-6zM228 130h6v10h-6zM252 130h6v10h-6zM288 130h6v10h-6zM312 130h6v10h-6zM372 130h6v10h-6zM408 130h6v10h-6zM0 140h6v10h-6zM72 140h6v10h-6zM132 140h6v10h-6zM192 140h6v10h-6zM228 140h6v10h-6zM252 140h6v10h-6zM312 140h6v10h-6zM372 140h6v10h-6z"/><path fill="url(#bg-stack)" d="M6 0h12v10h-12zM54 0h12v10h-12zM78 0h12v10h-12zM162 0h12v10h-12zM6 10h24v10h-24zM54 10h12v10h-12zM162 10h12v10h-12zM6 20h24v10h-24zM54 20h12v10h-12zM78 20h12v10h-12zM102 20h48v10h-48zM162 20h12v10h-12zM198 20h12v10h-12zM6 30h12v10h-12zM30 30h12v10h-12zM54 30h12v10h-12zM78 30h12v10h-12zM102 30h12v10h-12zM162 30h12v10h-12zM186 30h12v10h-12zM6 40h12v10h-12zM42 40h24v10h-24zM78 40h12v10h-12zM102 40h12v10h-12zM162 40h24v10h-24zM6 50h12v10h-12zM42 50h24v10h-24zM78 50h12v10h-12zM102 50h12v10h-12zM162 50h12v10h-12zM186 50h12v10h-12zM6 60h12v10h-12zM54 60h12v10h-12zM78 60h12v10h-12zM102 60h48v10h-48zM162 60h12v10h-12zM198 60h12v10h-12zM6 80h12v10h-12zM414 80h12v10h-12zM6 90h12v10h-12zM414 90h12v10h-12zM6 100h12v10h-12zM78 100h48v10h-48zM138 100h48v10h-48zM198 100h48v10h-48zM258 100h48v10h-48zM318 100h48v10h-48zM378 100h48v10h-48zM6 110h12v10h-12zM78 110h12v10h-12zM114 110h12v10h-12zM138 110h12v10h-12zM174 110h12v10h-12zM198 110h12v10h-12zM234 110h12v10h-12zM294 110h12v10h-12zM318 110h12v10h-12zM378 110h12v10h-12zM414 110h12v10h-12zM6 120h12v10h-12zM78 120h48v10h-48zM138 120h12v10h-12zM174 120h12v10h-12zM198 120h12v10h-12zM234 120h12v10h-12zM258 120h48v10h-48zM318 120h12v10h-12zM378 120h12v10h-12zM414 120h12v10h-12zM6 130h12v10h-12zM78 130h12v10h-12zM138 130h12v10h-12zM174 130h12v10h-12zM198 130h12v10h-12zM234 130h12v10h-12zM258 130h12v10h-12zM294 130h12v10h-12zM318 130h12v10h-12zM378 130h12v10h-12zM414 130h12v10h-12zM6 140h60v10h-60zM78 140h48v10h-48zM138 140h48v10h-48zM198 140h12v10h-12zM234 140h12v10h-12zM258 140h48v10h-48zM318 140h12v10h-12zM378 140h48v10h-48z"/></svg></h1></div>
+      <div class="out"><h1 aria-label="Nick Leonard">Nick Leonard</h1></div>
       <div class="line prompt"><b>~</b> $ cat about.txt</div>
       <div class="out">Technical engineering leader &amp; fractional CTO.<br class="d"> 18+ years architecting and scaling ML, data,<br class="d"> and AI platforms.</div>
       <div class="line prompt"><b>~</b> $ ls links/</div>
@@ -171,10 +179,31 @@
   const touch = matchMedia("(pointer: coarse)").matches;
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const original = [...col.children].filter((n) => n !== live).map((n) => n.cloneNode(true));
-  const bannerHTML = document.querySelector("h1").innerHTML;
 
   // ---- helpers -------------------------------------------------------------
   const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const cipherTimers = new WeakMap();
+  const decodeName = (el) => {
+    if (!el || calm) return;
+    const target = "Nick Leonard";
+    const glyphs = "01abcdef#$%&*+<>/";
+    let frame = 0;
+    clearInterval(cipherTimers.get(el));
+    cipherTimers.set(el, setInterval(() => {
+      frame++;
+      const resolved = Math.floor(frame / 2);
+      let out = "";
+      for (let i = 0; i < target.length; i++) {
+        out += target[i] === " " ? " " : i < resolved ? target[i] : glyphs[Math.floor(Math.random() * glyphs.length)];
+      }
+      el.textContent = out;
+      if (resolved >= target.length) {
+        clearInterval(cipherTimers.get(el));
+        cipherTimers.delete(el);
+        el.textContent = target;
+      }
+    }, 32));
+  };
   const a = (url, text) => `<a href="${url}" target="_blank" rel="noopener">${text || url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}</a>`;
   const btn = (cmd, text, cls = "") => `<button class="run ${cls}" data-run="${esc(cmd)}">${text || esc(cmd)}</button>`;
   const ul = (items) => `<ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
@@ -262,7 +291,6 @@
   // ---- commands ------------------------------------------------------------
   const err = (s) => `<span class="err">${s}</span>`;
   let history = [];
-  let nBanner = 0;
 
   const C = {
     help: () => rows([
@@ -332,7 +360,10 @@
     },
 
     pwd: () => "/home/nick" + (cwd.length ? "/" + cwd.join("/") : ""),
-    whoami: () => `<div class="h1">${bannerHTML.replace(/\b(b[gs]-(?:wide|stack))\b/g, `$1-${++nBanner}`)}</div>`,
+    whoami: () => {
+      queueMicrotask(() => decodeName(live.previousElementSibling?.querySelector(".h1")));
+      return `<div class="h1" aria-label="Nick Leonard">Nick Leonard</div>`;
+    },
     echo: (args) => esc(args.join(" ")),
     date: () => esc(new Date().toString()),
     history: () => rows(history.map((h, i) => [d(String(i + 1)), esc(h)])),
@@ -713,7 +744,13 @@
   hint.addEventListener("click", (e) => { e.stopPropagation(); input.value = ""; exec(ghost || "help"); if (!touch) focus(); });
   col.addEventListener("click", (e) => {
     const b = e.target.closest("button.run");
-    if (b) { e.stopPropagation(); exec(b.dataset.run); if (!touch) focus(); }
+    if (b) { e.stopPropagation(); exec(b.dataset.run); if (!touch) focus(); return; }
+    const h = e.target.closest("h1, .h1");
+    if (h && getSelection().isCollapsed) decodeName(h);
+  });
+  col.addEventListener("mouseover", (e) => {
+    const h = e.target.closest("h1, .h1");
+    if (h && !h.contains(e.relatedTarget)) decodeName(h);
   });
   live.addEventListener("click", () => { if (!game) focus(); });
   if (!touch) {
