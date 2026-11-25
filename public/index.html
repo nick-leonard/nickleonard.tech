@@ -72,16 +72,63 @@
   .banner { display: block; height: auto; }
   .banner.wide { width: min(621px, 100%); }
   .banner.stack { display: none; width: min(511px, 100%); }
+  .cursor { display: inline-block; min-width: 1ch; height: 1.2em; line-height: 1.2em; vertical-align: -0.2em; background: var(--violet); color: var(--panel); white-space: pre; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { background: transparent; color: inherit; } }
+  .cursor:not(:empty) { vertical-align: baseline; }
   @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
-  .cursor { display: inline-block; width: 9px; height: 18px; background: var(--violet); vertical-align: -3px; animation: blink 1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
   @media (max-width: 1100px) { br.d { display: none; } }
+
+  /* Interactive terminal (script at the end of the page). Without JS the page is the static card above. */
+  .live { position: relative; }
+  .live input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; font-size: 16px; pointer-events: none; }
+  .typed { color: var(--text); white-space: pre-wrap; word-break: break-all; }
+  .ghost { color: var(--dim); }
+  .hint { margin-left: 2ch; font: inherit; font-size: 12px; color: var(--dim); background: none; border: 1px solid var(--line); border-radius: 4px; padding: 1px 8px; cursor: pointer; vertical-align: 1px; white-space: nowrap; }
+  .hint:hover, .hint:focus-visible { color: var(--text); border-color: var(--violet); outline: none; }
+  .hint kbd { font: inherit; color: var(--copper); }
+  button.run { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+  .out .run { color: var(--copper); }
+  .out .ls .run { color: var(--text); }
+  .out .ls .run.dir { color: var(--violet); }
+  button.run:hover, button.run:focus-visible { text-decoration: underline; text-underline-offset: 3px; outline: none; }
+  .out .d { color: var(--dim); }
+  .out .dir { color: var(--violet); }
+  .out .err { color: var(--rose); }
+  .out .ok { color: var(--green); }
+  .out h2 { font-size: inherit; color: var(--violet); margin-bottom: 4px; }
+  .out p { margin-bottom: 6px; }
+  .out ul { list-style: none; padding: 0; margin-bottom: 6px; }
+  .out li { padding-left: 2ch; text-indent: -2ch; }
+  .out li::before { content: "- "; color: var(--dim); }
+  .grid2 { display: grid; grid-template-columns: max-content 1fr; column-gap: 3ch; }
+  .ls { display: flex; flex-wrap: wrap; column-gap: 3ch; }
+  .neo { display: flex; gap: 4ch; align-items: flex-start; }
+  .neo img { width: 150px; border-radius: 6px; flex: none; }
+  .neo .t { color: var(--green); }
+  .sw { display: flex; margin-top: 8px; }
+  .sw i { width: 3ch; height: 1.2em; }
+  .h1 { margin: 6px 0 8px; }
+  canvas.snake { display: block; margin: 8px 0 4px; border: 1px solid var(--line); border-radius: 6px; touch-action: none; }
+  .board { display: grid; grid-template-columns: repeat(3, max-content); column-gap: 3ch; }
+  .board .me { color: var(--green); }
+
+  .window { view-transition-name: win; }
+  ::view-transition-group(win) { animation-duration: .35s; overflow: clip; border-radius: 12px; }
+  .window.term { height: calc(100dvh - 48px); display: flex; flex-direction: column; }
+  .window.term .body { display: block; flex: 1; min-height: 0; overflow-y: auto; padding: 28px 40px; scrollbar-color: var(--line) transparent; }
+  .window.term .photo { display: none; }
+
   @media (max-width: 760px) {
     body { overflow: auto; display: block; padding: 16px; font-size: 13px; height: auto; }
     .body { grid-template-columns: 1fr; padding: 20px; gap: 20px; }
     .photo { width: 160px; }
     .banner.wide { display: none; }
     .banner.stack { display: block; }
+    .window.term { height: auto; min-height: calc(100dvh - 32px); }
+    .window.term .body { overflow: visible; padding: 20px; }
+    .neo { flex-direction: column; gap: 12px; }
+    .neo img { width: 120px; }
+    .grid2 { column-gap: 2ch; }
   }
 </style>
 </head>
@@ -101,9 +148,583 @@
         <span class="k">linkedin</span>  → <a href="https://www.linkedin.com/in/leonardnick">linkedin.com/in/leonardnick</a><br>
         <span class="k">github</span>    → <a href="https://github.com/nick-leonard">github.com/nick-leonard</a>
       </div>
-      <div class="line prompt"><b>~</b> $ <span class="cursor"></span></div>
+      <div class="line prompt live" id="live"><b>~</b><span class="ps"> $ </span><span class="typed"><span class="cursor"></span></span></div>
     </div>
   </div>
 </div>
+<script>
+(() => {
+  const GH = "https://github.com/nick-leonard";
+  const LI = "https://www.linkedin.com/in/leonardnick";
+  const RH = "https://rockhousetech.com";
+  const MAIL = ["nick", "rockhousetech.com"].join("@"); // assembled at runtime so it is not in the static HTML
+  const TALK = "https://www.meetup.com/blog/recording-happenings-from-meetup-engineering/";
+
+  const win = document.querySelector(".window");
+  const scroller = win.querySelector(".body");
+  const col = scroller.lastElementChild;
+  const live = document.getElementById("live");
+  const typed = live.querySelector(".typed");
+  const label = live.querySelector("b");
+  const ps = live.querySelector(".ps");
+  const title = win.querySelector(".bar span");
+  const touch = matchMedia("(pointer: coarse)").matches;
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const original = [...col.children].filter((n) => n !== live).map((n) => n.cloneNode(true));
+  const bannerHTML = document.querySelector("h1").innerHTML;
+
+  // ---- helpers -------------------------------------------------------------
+  const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const a = (url, text) => `<a href="${url}" target="_blank" rel="noopener">${text || url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}</a>`;
+  const btn = (cmd, text, cls = "") => `<button class="run ${cls}" data-run="${esc(cmd)}">${text || esc(cmd)}</button>`;
+  const ul = (items) => `<ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
+  const rows = (r) => `<div class="grid2">${r.map(([k, v]) => `<span class="k">${k}</span><span>${v}</span>`).join("")}</div>`;
+  const d = (s) => `<span class="d">${s}</span>`;
+
+  // ---- content -------------------------------------------------------------
+  const PROJECTS = {
+    qsac: ["Amazon QuickSight as code", "Amazon QuickSight as code: dashboards split into reviewable files and linted in CI against 31 rules, including PHI guards.", GH + "/qsac"],
+    "reels-parser": ["Saved Instagram Reels into a research inventory", "Turns saved Instagram Reels into a searchable research inventory: Whisper transcription, Claude structured extraction with evidence on every reference, claim checks against GitHub READMEs.", GH + "/reels-parser"],
+    "resume-builder": ["Resume tailoring with a human in the loop", "Tailors a resume to a job description with Claude structured outputs, behind a validation gate that rejects anything not in the source file. A human reviews every change.", GH + "/resume-builder"],
+    "voice-visualizer": ["Browser waveform studio", "Browser waveform studio on the Web Audio API.", GH + "/voice-visualizer", "https://nick-leonard.github.io/voice-visualizer/"],
+    "nickleonard.tech": ["This site, terminal included", "This site: one static page on Cloudflare Workers. The terminal is a few hundred lines of plain JavaScript, no framework.", GH + "/nickleonard.tech"],
+    "iot-irrigation": ["WiFi dial-turner for my irrigation controller", "ESP8266 servo that turns my irrigation controller dial over WiFi.", GH + "/iot_irrigation_ctrlr_servo"],
+  };
+
+  const EXPERIENCE = {
+    xnilio: ["xNilio", "Founding CTO", "LLM platform for industrial RFQs, zero to working MVP in 12 weeks", [
+      "Reads requests for quote (PDFs up to 500 pages) and matches every requirement against the manufacturer's past builds",
+      "Claude on Vertex AI extracts each value with its verbatim source text, and a check rejects anything that isn't in the document",
+      "pgvector narrows the candidates, then numeric checks and an LLM judge rank the matches",
+      "Python and Go on GKE, Postgres, Terraform, golden-set evals in CI",
+    ]],
+    jcrew: ["J.Crew", "Director of Data Engineering", "Snowflake + dbt platform, co-led the GenBI rollout", [
+      "Snowflake + dbt platform: 250+ tested models, data contracts and a semantic layer",
+      "AI-ready mart standards, so people and LLM tools read the same definitions",
+      "Co-led the GenBI rollout with the BI team: reviewed real user prompts and tuned the semantic model to how people actually ask",
+    ]],
+    meetup: ["Meetup", "Head of Data", "10 production ML models serving 60MM+ users", [
+      "10 production ML models serving recommendations to 60MM+ users",
+      "New search architecture: the first release lifted click-through rate 6% and mean reciprocal rank 4%",
+      `Talked about it at Meetup Live: ${btn("talks")}`,
+    ]],
+  };
+
+  const STACK = [
+    ["ai", "Claude Code · Claude API · Amazon Bedrock · Vertex AI · Gemini · MCP · Codex · LM Studio · Qwen (local, MLX) · Whisper · pgvector"],
+    ["code", "Python · Go · SQL · Java · C++"],
+    ["data", "Snowflake · dbt · Airflow · Postgres · Kafka · Elasticsearch"],
+    ["infra", "GCP · AWS · Kubernetes · Terraform · Docker · GitHub Actions"],
+  ];
+
+  const OPEN = { github: GH, linkedin: LI, rockhouse: RH, business: RH, email: "mailto:" + MAIL, talk: TALK };
+  for (const [n, [, , url]] of Object.entries(PROJECTS)) OPEN[n] = url;
+
+  const FS = {
+    "about.txt": "",
+    links: { business: a(RH), linkedin: a(LI), github: a(GH) },
+    experience: Object.fromEntries(Object.entries(EXPERIENCE).map(([k, [name, role, , bullets]]) =>
+      [k + ".md", `<h2>${name} · ${role}</h2>${ul(bullets)}`])),
+    projects: Object.fromEntries(Object.entries(PROJECTS).map(([k, [, desc, url, demo]]) =>
+      [k + ".md", `<h2>${k}</h2><p>${desc}</p>${rows([["repo", a(url)], ...(demo ? [["demo", a(demo)]] : [])])}`])),
+    talks: { "meetup-engineering-2021.md": `<h2>Happenings from Meetup Engineering</h2><p>Meetup Live, October 2021. I presented Meetup's new search architecture.</p>${rows([["watch", a(TALK, "meetup.com/blog/recording-happenings-from-meetup-engineering")]])}` },
+    ".now": `<h2>now ${d("· updated Nov 2026")}</h2>${ul([
+      `Fractional CTO work through ${a(RH, "Rock House Technologies")}`,
+      `Moving a client's Tableau dashboards to Amazon QuickSight on Snowflake, as code (that's where ${btn("cat ~/projects/qsac.md", "qsac")} came from)`,
+      "Adding live captions with Amazon Transcribe to an end-to-end encrypted video calling platform",
+      `Building small AI tools for myself: ${btn("projects")}`,
+    ])}`,
+  };
+  // about.txt reuses the text already on the page
+  const aboutOut = original.find((n, i) => original[i - 1]?.textContent.includes("cat about.txt"));
+  FS["about.txt"] = aboutOut ? aboutOut.innerHTML : "";
+
+  // ---- filesystem ----------------------------------------------------------
+  let cwd = [];
+  const resolve = (p) => {
+    let segs = cwd.slice();
+    if (p === "~" || p.startsWith("~/") || p.startsWith("/")) { segs = []; p = p.replace(/^~\/?|^\/+/, ""); }
+    for (const s of p.split("/")) {
+      if (!s || s === ".") continue;
+      if (s === "..") segs.pop(); else segs.push(s);
+    }
+    return segs;
+  };
+  const nodeAt = (segs) => {
+    let n = FS;
+    for (const s of segs) { if (typeof n !== "object" || !(s in n)) return undefined; n = n[s]; }
+    return n;
+  };
+  const rel = (segs) => (cwd.length ? "~/" : "") + segs.join("/");
+  const here = () => "~" + (cwd.length ? "/" + cwd.join("/") : "");
+  const setLabel = () => { label.textContent = here(); title.textContent = "nick@nickleonard.tech: " + here(); };
+
+  // ---- commands ------------------------------------------------------------
+  const err = (s) => `<span class="err">${s}</span>`;
+  let history = [];
+  let nBanner = 0;
+
+  const C = {
+    help: () => rows([
+      [btn("neofetch"), "the fun summary"],
+      [btn("projects"), "things I've built"],
+      [btn("experience"), "where I've worked"],
+      [btn("stack"), "tools I build with"],
+      [btn("talks"), "public talks"],
+      [btn("contact"), "where to find me"],
+      [btn("play snake"), `a quick game · ${btn("scores")}`],
+      ["open &lt;name&gt;", `e.g. ${btn("open github")}`],
+      [`${btn("ls")} · cd · cat`, `try ${btn("ls -a")}`],
+      [`${btn("clear")} · ${btn("history")}`, "the usual"],
+      [btn("exit"), "back to the card"],
+    ]) + `<p class="d" style="margin-top:8px">${touch ? "tap any highlighted name to run it" : "tab completes · ↑ ↓ for history · click any highlighted name to run it"}</p>`,
+
+    projects: () => rows(Object.entries(PROJECTS).map(([k, [tag]]) => [btn(`cat ~/projects/${k}.md`, k), tag])),
+
+    experience: () => rows(Object.entries(EXPERIENCE).map(([k, [name, role, line]]) => [btn(`cat ~/experience/${k}.md`, name.toLowerCase()), `${role}: ${line}`]))
+      + `<p class="d" style="margin-top:8px">cat a file in experience/ for more</p>`,
+
+    stack: () => rows(STACK),
+
+    talks: () => rows([["2021-10", `Happenings from Meetup Engineering ${d("(Meetup Live)")}: Meetup's new search architecture<br>${a(TALK, "watch the recording")}`]]),
+
+    contact: () => rows([["email", a("mailto:" + MAIL, MAIL)], ["linkedin", a(LI)], ["business", a(RH)]]),
+
+    open: ([t]) => {
+      if (!t) return err("usage: open &lt;name&gt;") + "<br>" + d(Object.keys(OPEN).join(" · "));
+      const url = OPEN[t.toLowerCase()];
+      if (!url) return err(`open: ${esc(t)}: not found`) + "<br>" + d("try: " + Object.keys(OPEN).join(" · "));
+      window.open(url, "_blank", "noopener");
+      return `opening ${a(url)} …`;
+    },
+
+    ls: (args) => {
+      const all = args.some((x) => /^-\w*a/.test(x));
+      const target = args.find((x) => !x.startsWith("-")) || ".";
+      const segs = resolve(target);
+      const n = nodeAt(segs);
+      if (n === undefined) return err(`ls: ${esc(target)}: No such file or directory`);
+      if (typeof n === "string") return esc(target);
+      const names = Object.keys(n).filter((k) => all || !k.startsWith("."));
+      const items = names.map((k) => typeof n[k] === "object"
+        ? btn(`ls ${rel([...segs, k])}/`, k + "/", "dir")
+        : btn(`cat ${rel([...segs, k])}`, esc(k)));
+      return `<div class="ls">${all ? '<span class="dir">./</span><span class="dir">../</span>' : ""}${items.join("")}</div>`;
+    },
+
+    cd: ([t]) => {
+      const segs = resolve(t || "~");
+      const n = nodeAt(segs);
+      if (n === undefined) return err(`cd: no such file or directory: ${esc(t)}`);
+      if (typeof n !== "object") return err(`cd: not a directory: ${esc(t)}`);
+      cwd = segs; setLabel();
+      return "";
+    },
+
+    cat: (args) => {
+      if (!args.length) return err("usage: cat &lt;file&gt;") + "<br>" + d("try: cat about.txt");
+      return args.map((t) => {
+        const n = nodeAt(resolve(t));
+        if (n === undefined) return err(`cat: ${esc(t)}: No such file or directory`);
+        if (typeof n === "object") return err(`cat: ${esc(t)}: Is a directory`);
+        return `<div>${n}</div>`;
+      }).join("");
+    },
+
+    pwd: () => "/home/nick" + (cwd.length ? "/" + cwd.join("/") : ""),
+    whoami: () => `<div class="h1">${bannerHTML.replace(/\b(b[gs]-(?:wide|stack))\b/g, `$1-${++nBanner}`)}</div>`,
+    echo: (args) => esc(args.join(" ")),
+    date: () => esc(new Date().toString()),
+    history: () => rows(history.map((h, i) => [d(String(i + 1)), esc(h)])),
+
+    neofetch: () => `<div class="neo"><img src="/avatar.jpg" alt="">` + `<div><span class="t">nick</span>@<span class="t">nickleonard.tech</span><br>${d("─".repeat(21))}` + rows([
+      ["Role", "Engineering leader, data &amp; AI platforms"],
+      ["Host", `Fractional CTO, ${a(RH, "Rock House Technologies")}`],
+      ["Uptime", "18+ years"],
+      ["Shell", "claude-code"],
+      ["Packages", "python, go, sql, snowflake, dbt, gcp, aws"],
+      ["Models", "claude, gemini, qwen (local)"],
+      ["History", `${btn("cat ~/experience/meetup.md", "meetup")} → ${btn("cat ~/experience/jcrew.md", "j.crew")} → ${btn("cat ~/experience/xnilio.md", "xnilio")}`],
+      ["Theme", "indigo / violet / rose"],
+    ]) + `<div class="sw">${["--bg", "--line", "--dim", "--violet", "--rose", "--copper", "--green", "--text"].map((v) => `<i style="background:var(${v})"></i>`).join("")}</div></div></div>`,
+
+    sudo: (args) => {
+      if (args.join(" ").toLowerCase() === "hire nick") {
+        return `[sudo] password for visitor: ${d("••••••••")}<br><span class="ok">✓ permission granted.</span> Next step: ${a("mailto:" + MAIL + "?subject=Hello%20from%20nickleonard.tech", MAIL)}`;
+      }
+      return err("visitor is not in the sudoers file. This incident will be reported.") + "<br>" + d(`(try ${btn("sudo hire nick")})`);
+    },
+    rm: () => err("rm: nice try. This filesystem is read-only."),
+    clear: () => { while (live.previousSibling) live.previousSibling.remove(); return null; },
+  };
+  const ALIAS = { snake: "play snake", leaderboard: "scores", highscores: "scores", man: "help", "?": "help", ll: "ls -a", dir: "ls", vim: "__vim", vi: "__vim", nano: "__vim", emacs: "__vim" };
+  C.__vim = () => d("Read-only filesystem, and you'd never get out of vim anyway. Try " + btn("exit") + ".");
+  const NAMES = ["help", "neofetch", "projects", "experience", "stack", "talks", "contact", "open", "ls", "cd", "cat", "pwd", "whoami", "echo", "date", "history", "clear", "exit", "sudo", "play", "scores"];
+
+  const lev = (s, t) => {
+    const m = Array.from({ length: s.length + 1 }, (_, i) => [i, ...Array(t.length).fill(0)]);
+    for (let j = 1; j <= t.length; j++) m[0][j] = j;
+    for (let i = 1; i <= s.length; i++) for (let j = 1; j <= t.length; j++)
+      m[i][j] = Math.min(m[i - 1][j] + 1, m[i][j - 1] + 1, m[i - 1][j - 1] + (s[i - 1] === t[j - 1] ? 0 : 1));
+    return m[s.length][t.length];
+  };
+
+  // ---- the live line -------------------------------------------------------
+  const input = document.createElement("input");
+  Object.assign(input, { type: "text", autocomplete: "off", spellcheck: false, enterKeyHint: "go" });
+  input.setAttribute("autocapitalize", "off");
+  input.setAttribute("autocorrect", "off");
+  input.setAttribute("aria-label", "Terminal: type a command, or help to see them all");
+  live.appendChild(input);
+
+  const hint = document.createElement("button");
+  hint.className = "hint";
+  hint.type = "button";
+  hint.innerHTML = touch ? "tap to run <kbd>help</kbd>" : "press <kbd>tab</kbd>, then <kbd>enter</kbd>";
+
+  const log = document.createElement("div");
+  log.setAttribute("aria-live", "polite");
+  log.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)";
+  document.body.appendChild(log);
+
+  let term = false;
+  let ghost = "help";
+  let hIdx = 0;
+
+  const render = () => {
+    if (pending) input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3);
+    const v = input.value;
+    const i = input.selectionStart ?? v.length;
+    typed.innerHTML = ghost && !v
+      ? `<span class="ghost"><span class="cursor">${ghost[0]}</span>${ghost.slice(1)}</span>`
+      : esc(v.slice(0, i)) + `<span class="cursor">${esc(v[i] || "")}</span>` + esc(v.slice(i + 1));
+    if (ghost && !v && !hint.isConnected) live.appendChild(hint);
+    if ((!ghost || v) && hint.isConnected) hint.remove();
+  };
+
+  const scrollEnd = () => live.scrollIntoView({ block: "end" });
+  const print = (html) => { if (html) live.insertAdjacentHTML("beforebegin", `<div class="out">${html}</div>`); };
+  const echo = (raw) => live.insertAdjacentHTML("beforebegin", `<div class="line prompt"><b>${here()}</b> $ ${esc(raw)}</div>`);
+
+  const morph = (fn) => (!calm && document.startViewTransition ? document.startViewTransition(fn).finished.then(scrollEnd) : (fn(), scrollEnd()));
+
+  const restore = () => {
+    col.replaceChildren(...original.map((n) => n.cloneNode(true)), live);
+    win.classList.remove("term");
+    term = false; cwd = []; setLabel(); ghost = "help";
+    scroller.scrollTop = 0;
+    render();
+  };
+
+  const exec = (raw) => {
+    if (pending) { submitInitials(raw); return; }
+    if (game) game.quit();
+    const line = raw.trim();
+    if (line) { history.push(line); }
+    hIdx = history.length;
+    let [cmd = "", ...args] = line.split(/\s+/);
+    if (ALIAS[cmd]) [cmd, ...args] = [...ALIAS[cmd].split(" "), ...args];
+    cmd = cmd.toLowerCase();
+
+    if (cmd === "exit") { morph(restore); return; }
+
+    const step = () => {
+      if (!term) { win.classList.add("term"); term = true; }
+      ghost = "";
+      echo(raw);
+      let out;
+      if (!cmd) out = "";
+      else if (C[cmd] && !cmd.startsWith("__")) out = C[cmd](args);
+      else if (cmd === "__vim") out = C.__vim();
+      else {
+        const near = NAMES.map((n) => [lev(cmd, n), n]).sort((x, y) => x[0] - y[0])[0];
+        out = err(`command not found: ${esc(cmd)}`) + "<br>" + d(near[0] <= 2 ? `did you mean ${btn(near[1])}?` : `type ${btn("help")} to see the commands`);
+      }
+      print(out);
+      log.textContent = out ? new DOMParser().parseFromString(out, "text/html").body.textContent.slice(0, 400) : "";
+      render();
+      scrollEnd();
+    };
+    term ? step() : morph(step);
+  };
+
+  // ---- snake ---------------------------------------------------------------
+  // Engine in /snake.js (shared with the leaderboard Worker, which replays each
+  // run from its seed and moves to compute the score). Scores live in Cloudflare D1.
+  let game = null;     // the running game, if any
+  let pending = null;  // a finished run waiting for initials
+
+  const printEl = (html) => {
+    const el = document.createElement("div");
+    el.className = "out";
+    el.innerHTML = html;
+    live.before(el);
+    return el;
+  };
+  const api = async (path, body) => {
+    const r = await fetch("/api/snake/" + path, body
+      ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : {});
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || "HTTP " + r.status);
+    return data;
+  };
+  const board = (top, mine) => top.length
+    ? `<div class="board">${top.map((s, i) => {
+        const c = s.id === mine ? ' class="me"' : "";
+        return `<span${c}>${String(i + 1).padStart(2, " ")}.</span><span${c}>${esc(s.initials)}</span><span${c}>${s.score}</span>`;
+      }).join("")}</div>`
+    : d("No scores yet. Be the first: ") + btn("play snake");
+  const again = () => `${btn("play snake", "play again")} ${d("·")} ${btn("scores")}`;
+
+  C.scores = () => {
+    const el = printEl(d("loading…"));
+    api("scores")
+      .then((r) => { el.innerHTML = `<h2>snake · top 10</h2>${board(r.top)}`; scrollEnd(); })
+      .catch(() => { el.innerHTML = err("The leaderboard is unavailable right now."); });
+    return null;
+  };
+
+  C.play = ([name]) => {
+    if (!name) return `games: ${btn("play snake", "snake")}`;
+    if (name.toLowerCase() !== "snake") return err(`play: ${esc(name)}: no such game`) + "<br>" + d("try ") + btn("play snake");
+    startSnake();
+    return null;
+  };
+
+  const setPrompt = (mode) => {
+    if (mode === "initials") { label.textContent = "initials"; ps.textContent = "? "; }
+    else { setLabel(); ps.textContent = " $ "; }
+  };
+
+  const submitInitials = async (raw) => {
+    const ini = raw.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3);
+    live.insertAdjacentHTML("beforebegin", `<div class="line prompt"><b>initials</b>? ${esc(ini)}</div>`);
+    if (ini && ini.length < 3) { print(err("Three letters or digits, please.")); render(); scrollEnd(); return; }
+    const run = pending;
+    pending = null;
+    setPrompt();
+    input.value = "";
+    render();
+    if (!ini) { print(d("Skipped. ") + again()); scrollEnd(); return; }
+    const el = printEl(d("checking your run…"));
+    scrollEnd();
+    try {
+      const r = await api("score", { id: run.id, moves: run.moves, initials: ini });
+      el.innerHTML = `<span class="ok">✓ ${r.score} point${r.score === 1 ? "" : "s"}, rank #${r.rank}.</span><br><br><h2>snake · top 10</h2>${board(r.top, r.id)}<br>${again()}`;
+    } catch (e) {
+      el.innerHTML = err(`Couldn't save that score: ${esc(e.message)}`) + "<br>" + again();
+    }
+    scrollEnd();
+  };
+
+  async function startSnake() {
+    const el = printEl(d("loading snake…"));
+    let S, run = null;
+    try {
+      [S, run] = await Promise.all([
+        import("/snake.js"),
+        Promise.race([api("start", {}), new Promise((r) => setTimeout(r, 3000, null))]).catch(() => null),
+      ]);
+    } catch {
+      el.innerHTML = err("Couldn't load the game.");
+      return;
+    }
+    const seed = run ? run.seed : (Math.random() * 2 ** 32) >>> 0;
+    el.innerHTML = `<div><span class="k">snake</span> ${d("·")} score <b class="sc">0</b> ${d("·")} <span class="d msg">${
+      touch ? "swipe to start" : "arrow keys or WASD to start · esc quits"}${run ? "" : " · offline, scores won't be saved"}</span></div><canvas class="snake"></canvas>`;
+    const cv = el.querySelector("canvas");
+    const ctx = cv.getContext("2d");
+    const sc = el.querySelector(".sc");
+    const msg = el.querySelector(".msg");
+    const css = getComputedStyle(document.documentElement);
+    const col = (v) => css.getPropertyValue(v).trim();
+    const [BG, LINE, VIOLET, ROSE, COPPER, HEAD] = [col("--bg"), col("--line"), col("--violet"), col("--rose"), col("--copper"), "#ece6ff"];
+    const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const mix = (x, y, t) => { const [a, b] = [hex(x), hex(y)]; return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",")})`; };
+
+    const g = S.newGame(seed);
+    const moves = [];
+    const queue = [];
+    let cell = 20, timer = null, started = false;
+
+    const draw = () => {
+      const w = cell * S.W, h = cell * S.H;
+      ctx.fillStyle = BG; ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = LINE;
+      for (let x = 0; x < S.W; x++) for (let y = 0; y < S.H; y++) ctx.fillRect(x * cell + cell / 2 - 1, y * cell + cell / 2 - 1, 2, 2);
+      if (g.food) { ctx.fillStyle = COPPER; ctx.fillRect(g.food[0] * cell + 3, g.food[1] * cell + 3, cell - 6, cell - 6); }
+      const n = g.snake.length - 1 || 1;
+      g.snake.forEach(([x, y], i) => {
+        ctx.fillStyle = i === 0 ? HEAD : mix(VIOLET, ROSE, i / n);
+        ctx.fillRect(x * cell + 1, y * cell + 1, cell - 2, cell - 2);
+      });
+      if (g.dead) {
+        ctx.fillStyle = "rgba(11,10,31,.72)"; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = ROSE; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.font = `700 ${Math.round(cell * 1.1)}px "JetBrains Mono", monospace`;
+        ctx.fillText("game over", w / 2, h / 2);
+      }
+    };
+    const size = () => {
+      const avail = el.clientWidth - parseFloat(getComputedStyle(el).paddingLeft);
+      cell = Math.max(10, Math.floor(Math.min(avail, 520) / S.W));
+      const dpr = window.devicePixelRatio || 1;
+      cv.width = cell * S.W * dpr; cv.height = cell * S.H * dpr;
+      cv.style.width = cell * S.W + "px"; cv.style.height = cell * S.H + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    };
+    const ro = new ResizeObserver(size);
+
+    const tick = () => {
+      while (queue.length) { const dir = queue.shift(); if (S.turn(g, dir)) { moves.push([g.tick, dir]); break; } }
+      S.step(g);
+      sc.textContent = g.score;
+      draw();
+      if (g.dead) return end();
+      timer = setTimeout(tick, S.tickMs(g.score));
+    };
+    const steer = (dir) => {
+      if (g.dead) return;
+      if (queue.length < 2 && dir !== (queue[queue.length - 1] || g.dir)) queue.push(dir);
+      if (!started) { started = true; msg.textContent = touch ? "swipe to turn" : "esc quits"; timer = setTimeout(tick, S.tickMs(0)); }
+    };
+
+    const KEYS = { ArrowUp: "u", ArrowDown: "d", ArrowLeft: "l", ArrowRight: "r", w: "u", s: "d", a: "l", d: "r" };
+    const onKey = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "Escape" || e.key === "q") { e.preventDefault(); quit(); return; }
+      const dir = KEYS[e.key.length === 1 ? e.key.toLowerCase() : e.key];
+      if (dir) { e.preventDefault(); steer(dir); }
+    };
+    let tx = 0, ty = 0;
+    const onTouchStart = (e) => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; if (!started) steer("r"); };
+    const onTouchMove = (e) => {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - tx, dy = e.touches[0].clientY - ty;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+      steer(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "r" : "l") : (dy > 0 ? "d" : "u"));
+      tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+    };
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      ro.disconnect();
+      window.removeEventListener("keydown", onKey, true);
+      cv.removeEventListener("touchstart", onTouchStart);
+      cv.removeEventListener("touchmove", onTouchMove);
+      game = null;
+    };
+    const quit = () => {
+      cleanup();
+      msg.textContent = "quit";
+      if (!touch) focus();
+    };
+    const end = () => {
+      cleanup();
+      msg.textContent = "game over";
+      if (!run) print(`Score ${g.score}. ${d("Offline, so it isn't on the leaderboard.")} ${again()}`);
+      else if (g.score < 1) print(`Score 0. ${again()}`);
+      else {
+        pending = { id: run.id, moves };
+        setPrompt("initials");
+        print(`<span class="ok">Score ${g.score}!</span> Type 3 initials for the leaderboard and press enter ${d("(enter alone skips)")}`
+          + (touch ? `<br>${d("tap the prompt below to type")}` : ""));
+      }
+      render();
+      scrollEnd();
+      if (!touch) focus();
+    };
+
+    game = { quit };
+    input.blur();
+    window.addEventListener("keydown", onKey, true);
+    cv.addEventListener("touchstart", onTouchStart, { passive: true });
+    cv.addEventListener("touchmove", onTouchMove, { passive: false });
+    ro.observe(el);
+    size();
+    el.scrollIntoView({ block: "nearest" });
+    live.scrollIntoView({ block: "end" });
+  }
+
+  // ---- completion ----------------------------------------------------------
+  const complete = () => {
+    const v = input.value;
+    const parts = v.split(/\s+/);
+    const cur = parts[parts.length - 1];
+    let cands = [];
+    if (parts.length === 1) cands = NAMES.filter((n) => n.startsWith(cur));
+    else if (parts[0] === "open") cands = Object.keys(OPEN).filter((n) => n.startsWith(cur.toLowerCase()));
+    else if (parts[0] === "sudo") cands = ["hire", "nick"].filter((n) => n.startsWith(cur) && n !== parts[parts.length - 2]);
+    else if (["ls", "cd", "cat"].includes(parts[0])) {
+      const cut = cur.lastIndexOf("/") + 1;
+      const dir = cur.slice(0, cut), base = cur.slice(cut);
+      const n = nodeAt(resolve(dir || "."));
+      if (n && typeof n === "object") {
+        cands = Object.keys(n)
+          .filter((k) => k.startsWith(base) && (base.startsWith(".") || !k.startsWith(".")) && (parts[0] !== "cd" || typeof n[k] === "object"))
+          .map((k) => dir + k + (typeof n[k] === "object" ? "/" : ""));
+      }
+    }
+    if (!cands.length) return false;
+    const head = v.slice(0, v.length - cur.length);
+    if (cands.length === 1) {
+      input.value = head + cands[0] + (cands[0].endsWith("/") ? "" : " ");
+    } else {
+      let p = cands[0];
+      for (const c of cands) while (!c.startsWith(p)) p = p.slice(0, -1);
+      if (p.length > cur.length) input.value = head + p;
+      else { echo(v); print(`<div class="ls">${cands.map((c) => esc(c.slice(c.lastIndexOf("/", c.length - 2) + 1))).join(" ")}</div>`); scrollEnd(); }
+    }
+    input.setSelectionRange(input.value.length, input.value.length);
+    render();
+    return true;
+  };
+
+  // ---- events --------------------------------------------------------------
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const v = input.value || (ghost && !term ? ghost : "");
+      input.value = "";
+      exec(v);
+    } else if (e.key === "Tab" && !e.shiftKey) {
+      if (ghost && !input.value) { e.preventDefault(); input.value = ghost; render(); }
+      else if (input.value && complete()) e.preventDefault();
+    } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      if (!history.length) return;
+      e.preventDefault();
+      hIdx = Math.max(0, Math.min(history.length, hIdx + (e.key === "ArrowUp" ? -1 : 1)));
+      input.value = history[hIdx] || "";
+      input.setSelectionRange(input.value.length, input.value.length);
+      render();
+    } else if (e.ctrlKey && e.key.toLowerCase() === "l") {
+      e.preventDefault(); if (term) C.clear(); render();
+    } else if (e.ctrlKey && e.key.toLowerCase() === "c") {
+      e.preventDefault(); if (term) echo(input.value + "^C"); input.value = ""; render();
+    } else if (e.key === "Escape") {
+      input.blur();
+    }
+  });
+  input.addEventListener("input", render);
+  document.addEventListener("selectionchange", () => { if (document.activeElement === input) render(); });
+
+  const focus = () => input.focus({ preventScroll: true });
+  hint.addEventListener("click", (e) => { e.stopPropagation(); input.value = ""; exec(ghost || "help"); if (!touch) focus(); });
+  col.addEventListener("click", (e) => {
+    const b = e.target.closest("button.run");
+    if (b) { e.stopPropagation(); exec(b.dataset.run); if (!touch) focus(); }
+  });
+  live.addEventListener("click", () => { if (!game) focus(); });
+  if (!touch) {
+    win.addEventListener("mouseup", (e) => {
+      if (game || e.target.closest("a, button, canvas") || !getSelection().isCollapsed) return;
+      focus();
+    });
+    focus();
+  }
+  render();
+})();
+</script>
 </body>
 </html>

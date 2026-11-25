@@ -4,7 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Nick Leonard's personal site, live at https://nickleonard.tech. It is a static-assets-only Cloudflare Worker: there is no Worker script, `wrangler.jsonc` points `assets.directory` at `./public` and Cloudflare serves those files directly. Unknown paths serve `public/404.html` (`not_found_handling: "404-page"`).
+Nick Leonard's personal site, live at https://nickleonard.tech. It is a Cloudflare Worker that is almost all static assets: `wrangler.jsonc` points `assets.directory` at `./public` and Cloudflare serves those files directly. Unknown paths serve `public/404.html` (`not_found_handling: "404-page"`). The one dynamic part is the snake leaderboard: `run_worker_first: ["/api/*"]` sends only `/api/*` to `src/worker.js`, which stores scores in the D1 database `nickleonard-tech` (binding `DB`, schema in `migrations/`).
+
+## Snake leaderboard
+
+- `public/snake.js` is a deterministic engine (seeded food, fixed 20x14 grid) imported by both the page and the Worker. Changing its rules changes how old runs replay, so a rule change means clearing `scores`.
+- `POST /api/snake/start` hands out a run id and seed (table `runs`, rows older than a day are pruned). `POST /api/snake/score` takes the run id, the list of turns and 3-character initials; the Worker replays the turns to compute the score itself, rejects runs that don't replay, were already submitted, or finished faster than the game's tick speed allows, and blocks offensive initials (`BLOCKED`). `GET /api/snake/scores` returns the top 10.
+- This stops forged scores, not a patient bot that plays in real time. To remove an entry: `npx wrangler d1 execute nickleonard-tech --remote --command "DELETE FROM scores WHERE id = N"`.
+- Local: `npx wrangler d1 migrations apply nickleonard-tech --local`, then `npm run dev`.
 
 ## Commands
 
@@ -24,6 +31,8 @@ Pushes to `main` on GitHub (nick-leonard/nickleonard.tech) also deploy automatic
 `public/index.html` is a single self-contained page styled as a terminal window (JetBrains Mono from Google Fonts, colors as CSS variables taken from the avatar: deep indigo, violet, rose, copper). It must fit one desktop screen without scrolling; below 760px it stacks into one column.
 
 The large "Nick Leonard" heading is pixel art from a small hand-drawn 7-row pixel font (`█` = fill, `▒` = violet left-edge shadow), rendered as two inline SVGs inside the `h1`: `.banner.wide` (one line, desktop) and `.banner.stack` (Nick over Leonard, below 760px). The source art lives in `tools/banner_svg.py`; edit `ART` there and run `python3 tools/banner_svg.py` to rewrite both SVGs, rather than hand-editing the paths. It used to be text in a `<pre>`, but Google Fonts' JetBrains Mono subsets have no block characters, so phones drew `█`/`▒` in a fallback font of a different width and the letters smeared; SVG renders the same everywhere.
+
+The last prompt line (`#live`) is an interactive terminal, driven by the inline `<script>` at the end of the page (plain JS, no build). On load it suggests `help` with a "press tab, then enter" hint ("tap to run" on touch screens). The first command switches the window to `.term` mode (photo hidden, window fills the screen, output scrolls inside it), animated with the View Transitions API where supported; `exit` restores the card. Commands and their content (projects, experience, stack, talks, `.now`, a small read-only filesystem for `ls`/`cd`/`cat`) live in the constants at the top of the script: edit those to change what visitors see, and update the `.now` date when you change it. Keep the full resume and personal contact details off the site: the only contact details are LinkedIn, GitHub, Rock House and the business email nick@rockhousetech.com (assembled in JS as `MAIL`). Without JavaScript the page is the static card.
 
 Favicons (`favicon.svg`, `favicon.ico`, `apple-touch-icon.png`) are the pixel "N" from the same font. The `.ico` and `.png` were rendered from the SVG; regenerate them if the SVG changes.
 

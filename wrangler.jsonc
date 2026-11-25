@@ -2,11 +2,17 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "nickleonard-tech",
   "compatibility_date": "2026-10-01",
-  // Static-only Worker: everything in ./public is served as-is.
+  // Static assets from ./public; the Worker script only handles /api/* (snake leaderboard).
+  "main": "src/worker.js",
   "assets": {
     "directory": "./public",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
   },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "nickleonard-tech", "database_id": "4f96f2a6-f8f0-4276-9d2c-a8c8f078cefc", "migrations_dir": "migrations" }
+  ],
   "routes": [
     { "pattern": "nickleonard.tech", "custom_domain": true },
     { "pattern": "www.nickleonard.tech", "custom_domain": true }
